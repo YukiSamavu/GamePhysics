@@ -13,8 +13,8 @@ public static class Intergrator
 
     public static void SemiImplicitEuler(Body body, float dt)
     {
-        body.acceleration = (body.force / body.mass);
         body.velocity += (body.acceleration * dt);
         body.position += (body.velocity * dt);
+        body.velocity *= (1f / (1f + (body.damping * dt)));
     }
 }

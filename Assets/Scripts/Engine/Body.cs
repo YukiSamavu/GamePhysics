@@ -4,34 +4,57 @@ using UnityEngine;
 
 public class Body : MonoBehaviour
 {
+    public enum eType
+    {
+        Static,
+        Kinematic,
+        Dynamic
+    }
+
+    public enum eForceMode
+    {
+        Force,
+        Acceleration,
+        Velocity
+    }
+
     public Vector2 force { get; set; } = Vector2.zero;
     public Vector2 position { get { return transform.position; } set { transform.position = value; } }
     public Vector2 velocity { get; set; } = Vector2.zero;
     public Vector2 acceleration { get; set; } = Vector2.zero;
-    public float mass { get; set; } = 1;
+    public float mass { get => shape.mass; }
+    public float inverseMass { get => (mass == 0) ? 0 : 1 / mass; }
     public float damping { get; set; } = 0;
-    public BoolData randomColor;
-    float timer = .01f;
-    float colorTimer = 0;
+    public float restitution = 0.5f;
 
-    public void AddForce(Vector2 force)
+    public eType type { get; set; }
+    public Shape shape;
+
+    public void AddForce(Vector2 force, eForceMode forceMode = eForceMode.Force)
     {
-        this.force += force;
+        if (type == eType.Static) return;
+
+        switch (forceMode)
+        {
+            case eForceMode.Force:
+                this.force += force;
+                break;
+            case eForceMode.Acceleration:
+                acceleration = force;
+                break;
+            case eForceMode.Velocity:
+                velocity = force;
+                break;
+            default:
+                break;
+        }
+
     }
 
     public void Step(float dt)
     {
-        if (randomColor)
-        {
-            SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (type != eType.Dynamic) return;
 
-            if(timer <= colorTimer)
-            {
-                spriteRenderer.color = new Color(Random.Range(0, 1f) * 255, Random.Range(0, 1f) * 255, Random.Range(0, 1f) * 255, 1);
-                colorTimer = 0;
-            }
-        }
-        colorTimer += dt;
-        acceleration = World.Instance.Gravity + (force / mass);
+        acceleration = World.Instance.Gravity + (force * inverseMass);
     }
 }
